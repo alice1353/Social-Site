@@ -1,8 +1,5 @@
-# lecture_edit_in_place
+Social Site (2020)
 
-Lecture about editing in-place a textarea.  
-There are two interesting branches:
+A single page web application that enables authenticated users to create, edit in place, delete, rate (thumbs up/down), and reply to posts listed in an orderly fashion.
 
-* _master_ or _buttons_ : A text area using buttons. 
-* _no_buttons_ : A text area not using buttons. 
-
+Uses: Web4Py web framework, Python, JavaScript, Vue.js, SQL, HTML, CSS

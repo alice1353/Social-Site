@@ -36,45 +36,6 @@ from py4web.utils.url_signer import URLSigner
 from yatl.helpers import A
 from . common import db, session, T, cache, auth, signed_url
 
-TEST_POSTS = [
-    {
-        "id": 1,
-        "content": "I love apples",
-        "author": "Joe Smith",
-        "email": "joe@ucsc.edu",
-        "reply_id": None, # Main post.  Followed by its replies if any.
-    },
-    {
-        "id": 2,
-        "content": "I love bananas",
-        "author": "Elena Bianchi",
-        "email": "elena@ucsc.edu",
-        "is_reply": 1,
-    },
-    {
-        "id": 3,
-        "content": "I prefer pears",
-        "author": "Joel Framon",
-        "email": "joel@ucsc.edu",
-        "is_reply": 1,
-    },
-    {
-        "id": 4,
-        "content": "I love tomatoes",
-        "author": "Olga Kabarova",
-        "email": "olga@ucsc.edu",
-        "is_reply": None, # Main post.  Followed by its replies if any.
-    },
-    {
-        "id": 5,
-        "content": "I prefer nuts",
-        "author": "Hao Wang",
-        "email": "hwang@ucsc.edu",
-        "is_reply": 4,
-    },
-]
-
-
 url_signer = URLSigner(session)
 
 def get_name_from_email(e):
@@ -102,24 +63,39 @@ def index():
 def get_posts():
     # You can use this shortcut for testing at the very beginning.
     # TODO: complete.
-    return dict(posts=TEST_POSTS)
-
+    posts = db(db.post).select(orderby=~db.post.id).as_list()
+    for i in posts:
+        i['author'] = get_name_from_email(i.get('email'))
+    return dict(posts=posts)
 
 @action('posts',  method="POST")
 @action.uses(db, auth.user)  # etc.  Put here what you need.
 def save_post():
     # To help with testing.
     # TODO: optional.
-    time.sleep(1)
-    if random.random() < 0.1:
-        raise HTTP(500)
+    time.sleep(0.5)
+    #if random.random() < 0.1:
+    #    raise HTTP(500)
     id = request.json.get('id') # Note: id can be none.
     content = request.json.get('content')
     is_reply = request.json.get('is_reply')
     # TODO: complete.
     # If id is None, this means that this is a new post that needs to be
     # inserted.  If id is not None, then this is an update.
-    return dict(content=content, id=id)
+    if id == None:
+        id = db.post.insert(
+            content = content,
+            is_reply = is_reply,
+        )
+    else:
+        db(db.post.id == id).update(
+            content = content
+        )
+    posts = db(db.post).select().as_list()
+    for i in posts:
+        if i.get('id') == id:
+            author = get_name_from_email(i.get('email'))
+    return dict(content=content, id=id, author=author)
 
 
 @action('delete_post',  method="POST")
